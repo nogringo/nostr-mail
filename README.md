@@ -140,13 +140,38 @@ HTTP_PORT=3000
 
 ## Email Addressing
 
-Emails can be addressed using:
+### Address Formats Comparison
 
-| Format | Example |
-|--------|---------|
-| Hex pubkey | `5786c7db4957547b...@yourdomain.com` |
-| npub | `npub1abc123...@yourdomain.com` |
-| NIP-05 name | `alice@yourdomain.com` |
+| Format | Example | Readable | Sovereign | RFC 2822 | Legacy Reply |
+|--------|---------|----------|-----------|----------|--------------|
+| `nip05@bridge.com` | `alice@bridge.com` | ✓ | ✗ | ✓ | ✓ |
+| `npub@bridge.com` | `npub1...@bridge.com` | ✗ | ✓ | ✓ | ✓ |
+| `npub@nostr` | `npub1...@nostr` | ✗ | ✓ | ✓ | ✗ |
+| `npub` | `npub1...` | ✗ | ✓ | ✗ | ✗ |
+
+### Format Details
+
+#### `nip05@bridge.com`
+- **Pros**: Human-readable, works everywhere, legacy clients can reply
+- **Cons**: Not sovereign - depends on NIP-05 server to resolve your identity
+- **Use case**: User-friendly email bridge service
+
+#### `npub@bridge.com`
+- **Pros**: Sovereign (npub derived from your keys), works with legacy clients
+- **Cons**: Long and not human-readable, requires bridge infrastructure
+- **Use case**: Sovereign identity with full legacy email compatibility
+
+#### `npub@nostr`
+- **Pros**: Sovereign, RFC 2822 compliant, email parsers work correctly
+- **Cons**: `nostr` is not a real domain - legacy clients cannot reply
+- **Use case**: Nostr-to-Nostr communication, forwarding to Gmail (read-only)
+
+#### `npub` (no domain)
+- **Pros**: Simplest format, fully sovereign
+- **Cons**: Not RFC 2822 compliant, email parsers will fail to extract the address
+- **Use case**: Not recommended - causes parsing issues
+
+### NIP-05 Resolution
 
 For NIP-05 names, the service queries `https://yourdomain.com/.well-known/nostr.json?name=alice` to resolve the pubkey.
 
