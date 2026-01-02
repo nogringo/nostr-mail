@@ -1,0 +1,120 @@
+{
+  "version": "3.11.0",
+  "created": "2026-01-02T15:44:27Z",
+  "files": [
+    {
+      "path": ".nojekyll"
+    },
+    {
+      "path": "404.html"
+    },
+    {
+      "path": "bridge/configuration/index.html"
+    },
+    {
+      "path": "bridge/inbound/index.html"
+    },
+    {
+      "path": "bridge/index.html"
+    },
+    {
+      "path": "bridge/outbound/index.html"
+    },
+    {
+      "path": "bridge/plugins/index.html"
+    },
+    {
+      "path": "client/authentication/index.html"
+    },
+    {
+      "path": "client/index.html"
+    },
+    {
+      "path": "client/installation/index.html"
+    },
+    {
+      "path": "client/usage/index.html"
+    },
+    {
+      "path": "CNAME"
+    },
+    {
+      "path": "getting-started/index.html"
+    },
+    {
+      "path": "index.html"
+    },
+    {
+      "path": "package-lock.json"
+    },
+    {
+      "path": "package.json"
+    },
+    {
+      "path": "protocol/index.html"
+    },
+    {
+      "path": "resources/css/retype.css"
+    },
+    {
+      "path": "resources/fonts/Inter-italic-latin-var.woff2"
+    },
+    {
+      "path": "resources/fonts/Inter-roman-latin-var.woff2"
+    },
+    {
+      "path": "resources/js/config.js"
+    },
+    {
+      "path": "resources/js/lunr.js"
+    },
+    {
+      "path": "resources/js/mermaid.js"
+    },
+    {
+      "path": "resources/js/prism.js"
+    },
+    {
+      "path": "resources/js/retype.js"
+    },
+    {
+      "path": "resources/js/search.json"
+    },
+    {
+      "path": "resources/lunr.js.LICENSE.txt"
+    },
+    {
+      "path": "resources/mermaid.js.LICENSE.txt"
+    },
+    {
+      "path": "resources/prism.js.LICENSE.txt"
+    },
+    {
+      "path": "resources/retype.js.LICENSE.txt"
+    },
+    {
+      "path": "resources/retype.LICENSE.txt"
+    },
+    {
+      "path": "robots.txt"
+    },
+    {
+      "path": "sdk/api/index.html"
+    },
+    {
+      "path": "sdk/index.html"
+    },
+    {
+      "path": "sdk/receiving/index.html"
+    },
+    {
+      "path": "sdk/sending/index.html"
+    },
+    {
+      "path": "sdk/storage/index.html"
+    },
+    {
+      "path": "sitemap.xml.gz"
+    }
+  ]
+}

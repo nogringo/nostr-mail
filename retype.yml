@@ -1,0 +1,44 @@
+input: .
+output: .retype
+url: https://nostr-mail.dev
+
+exclude:
+  - README.md
+  - PROTOCOL.md
+  - node_modules/
+  - .git/
+
+branding:
+  title: Nostr Mail
+  label: Docs
+  colors:
+    label:
+      text: "#ffffff"
+      background: "#8b5cf6"
+
+links:
+  - text: GitHub
+    link: https://github.com/nogringo/nostr-mail
+    icon: mark-github
+  - text: Dart Package
+    link: https://pub.dev/packages/nostr_mail
+    icon: package
+
+footer:
+  copyright: "Made with [Retype](https://retype.com)"
+
+poweredByRetype: true
+
+editor:
+  enabled: true
+
+search:
+  hotkeys:
+    - "/"
+    - "k"
+
+meta:
+  title: " | Nostr Mail Documentation"
+
+templating:
+  enabled: true
