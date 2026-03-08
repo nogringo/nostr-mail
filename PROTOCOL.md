@@ -13,7 +13,9 @@ Remove gatekeepers from email. Use Nostr as transport instead of SMTP between us
   "kind": 1301,
   "pubkey": "<sender_npub>",
   "tags": [
-    ["p", "<recipient_npub>"]
+    ["p", "<recipient_npub>"],
+    ["rcpt", "<recipient_email>"],
+    ["rcpt", "<recipient_email_2>"],
   ],
   "content": "<RFC 2822 email>"
 }
@@ -28,7 +30,8 @@ The content is a standard email. Nostr is just the delivery mechanism.
   "kind": 1301,
   "pubkey": "npub1alice...",
   "tags": [
-    ["p", "npub1bob..."]
+    ["p", "npub1bob..."],
+    ["rcpt", "bob@bridge.mail"]
   ],
   "content": "From: alice@bridge.mail\nTo: bob@bridge.mail\nSubject: Hello\nDate: Sat, 28 Dec 2024 12:00:00 +0000\n\nHey Bob, how are you?"
 }
@@ -101,7 +104,3 @@ When sending to `alice@gmail.com`:
 2. Client queries `_smtp@bridge.mail` via NIP-05
 3. Client gets bridge npub
 4. Client sends kind 1301 event with `p` = bridge npub
-
-## Relay Discovery
-
-Use NIP-65 inbox relays.
