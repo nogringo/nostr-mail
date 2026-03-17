@@ -1,4 +1,4 @@
-# Nostr Mail with Blossom Storage
+# Nostr Mail large MIME support
 
 ## Overview
 
@@ -88,7 +88,7 @@ MIME is stored in plaintext in the `content` field.
 
 The MIME content is encrypted using AES-GCM.
 
-```
+```txt
 RFC 2822 MIME message
     ↓
 Generate random 256-bit key and 96-bit nonce
