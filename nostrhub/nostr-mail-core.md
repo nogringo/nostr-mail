@@ -11,10 +11,7 @@ Remove gatekeepers from email. Use Nostr as transport instead of SMTP between us
 ```json
 {
   "kind": 1301,
-  "pubkey": "<sender_npub>",
-  "tags": [
-    ["p", "<recipient_npub>"]
-  ],
+  "pubkey": "<sender pubkey>",
   "content": "<RFC 2822 email>"
 }
 ```
@@ -36,10 +33,7 @@ Nostr emails uses NIP-59 gift wraps for privacy. It's similar to NIP-17.
 ```json
 {
   "kind": 1301,
-  "pubkey": "<sender_npub>",
-  "tags": [
-    ["p", "<recipient_npub>"]
-  ],
+  "pubkey": "<sender pubkey>",
   "content": "<RFC 2822 email>"
 }
 ```
@@ -49,10 +43,7 @@ Nostr emails uses NIP-59 gift wraps for privacy. It's similar to NIP-17.
 ```json
 {
   "kind": 1301,
-  "pubkey": "npub1alice...",
-  "tags": [
-    ["p", "npub1bob..."]
-  ],
+  "pubkey": "alice pubkey",
   "content": "From: npub1alice...@nostr\nTo: npub1bob...@nostr\nSubject: Hello\nDate: Sat, 28 Dec 2024 12:00:00 +0000\n\nHey Bob, how are you?"
 }
 ```
@@ -64,9 +55,8 @@ Sending to a non nostr user require using a bridge.
 ```json
 {
   "kind": 1301,
-  "pubkey": "<sender_npub>",
+  "pubkey": "<sender pubkey>",
   "tags": [
-    ["p", "<bridge_npub>"],
     ["mail-from", "<sender_email>"],
     ["rcpt-to", "<recipient_email>"]
   ],
@@ -74,7 +64,7 @@ Sending to a non nostr user require using a bridge.
 }
 ```
 
-- You can get the `bridge_npub` by resolving `_smtp@bridge_domain` with NIP-05.
+- You can get the `bridge pubkey` by resolving `_smtp@bridge_domain` with NIP-05.
 - Multiple `rcpt-to` tags MAY be used for CC/BCC recipients.
 
 #### Example
@@ -82,9 +72,8 @@ Sending to a non nostr user require using a bridge.
 ```json
 {
   "kind": 1301,
-  "pubkey": "npub1alice...",
+  "pubkey": "alice pubkey",
   "tags": [
-    ["p", "npub1bridge..."],
     ["mail-from", "npub1alice...@bridge.com"],
     ["rcpt-to", "bob@example.com"]
   ],
