@@ -80,3 +80,20 @@ Sending to a non nostr user require using a bridge.
   "content": "From: npub1alice...@bridge.com\nTo: bob@example.com\nSubject: Hello\nDate: Sat, 28 Dec 2024 12:00:00 +0000\n\nHey Bob, how are you?"
 }
 ```
+
+## Authentication
+ 
+By default, the kind 1301 rumor is unsigned, providing deniability.
+ 
+If the sender wants to prove authorship to third parties, they MAY sign the rumor. A signed rumor is a fully valid Nostr event with a `sig` field. This is useful in professional or legal contexts where the sender needs to prove they wrote an email.
+ 
+```json
+{
+  "kind": 1301,
+  "pubkey": "alice pubkey",
+  "content": "From: npub1alice...@nostr\nTo: npub1bob...@nostr\nSubject: Hello\nDate: Sat, 28 Dec 2024 12:00:00 +0000\n\nHey Bob, how are you?",
+  "sig": "..."
+}
+```
+ 
+Since a signed rumor is a valid Nostr event, it can be published to relays or reposted by anyone. This allows third parties to independently verify that the sender wrote the email, without requiring any trust in the recipient.
