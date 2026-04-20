@@ -50,17 +50,34 @@ After decryption, the content contains:
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `default_address` | string | Default "From" address (e.g. `npub1...@bridge.com`) |
 | `signature` | string | Email signature appended to outgoing emails |
 | `bridges` | string[] | List of preferred bridge domains |
+| `identities` | string[] | List of user-defined "From" identities in RFC 2822 format |
+
+### Identities
+
+Identities are user-defined "From" addresses stored as RFC 5322 formatted strings. Each entry can be used directly in the `From:` header without any transformation.
+
+**Format examples:**
+- `"Alice Real <npub1abc...@nostr.mail>"` — name + address
+- `"npub1abc...@bridge.com"` — address only (no name)
+- `"Pseudo <alice@example.com>"` — custom name + legacy email
+
+**Behavior:**
+- If `identities` is empty or absent, clients SHOULD auto-generate available addresses from `npub@nostr` and configured bridges
+- The **first identity** (index 0) is the default "From" address
 
 ### Example (Decrypted)
 
 ```json
 {
-  "default_address": "npub1abc...@nostr.mail",
   "signature": "Sent via Nostr Mail",
-  "bridges": ["nostr.mail", "bridge.example.com"]
+  "bridges": ["nostr.mail", "bridge.example.com"],
+  "identities": [
+    "Alice Real <npub1abc...@nostr.mail>",
+    "<npub1abc...@bridge.com>",
+    "Pseudo <alice@example.com>"
+  ]
 }
 ```
 
