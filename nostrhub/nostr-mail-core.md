@@ -97,3 +97,9 @@ If the sender wants to prove authorship to third parties, they MAY sign the rumo
 ```
  
 Since a signed rumor is a valid Nostr event, it can be published to relays or reposted by anyone. This allows third parties to independently verify that the sender wrote the email, without requiring any trust in the recipient.
+
+## Public Emails
+
+Emails sent to public entities MAY be sent without gift wrap, published directly to relays as a plain kind 1301 event. In this case the event MUST be signed, providing a public and verifiable proof that the sender wrote the email.
+
+This is useful for communications with public entities (governments, companies) where transparency is required.
