@@ -103,3 +103,25 @@ Since a signed rumor is a valid Nostr event, it can be published to relays or re
 Emails sent to public entities MAY be sent without gift wrap, published directly to relays as a plain kind 1301 event. In this case the event MUST be signed, providing a public and verifiable proof that the sender wrote the email.
 
 This is useful for communications with public entities (governments, companies) where transparency is required.
+
+### BCC on Public Emails
+
+Public emails MAY have BCC recipients. Since the email is public, BCC recipients are notified via a gift wrap containing the kind 1301 rumor with a `public-ref` tag pointing to the public event on relays.
+
+This allows the BCC recipient's client to:
+1. Identify that this email is public (not a private communication)
+2. Fetch the signed event from the relays
+
+```json
+{
+  "kind": 1301,
+  "pubkey": "<alice-pubkey>",
+  "content": "From: npub1alice...@nostr\nTo: npub1bob...@nostr\nSubject: Hello\nDate: Sat, 28 Dec 2024 12:00:00 +0000\n\nHey Bob, how are you?",
+  "tags": [
+    ["public-ref", "<public-event-id>", "wss://relay1.com", "wss://relay2.com"]
+  ]
+}
+```
+
+- The `public-ref` tag contains the event ID of the public kind 1301 event, followed by one or more relay hints where the event can be fetched.
+- Multiple relay hints MAY be provided for redundancy.
