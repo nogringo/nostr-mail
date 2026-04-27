@@ -61,7 +61,7 @@ Emails destined for non-Nostr recipients are sent with additional routing tags:
 
 Bridges send delivery status notifications to inform senders about the outcome of email delivery attempts.
 
-### Kind 1302: Delivery Status Notification
+### Kind 7679: Delivery Status Notification
 
 The DSN event allows senders to track whether their emails were successfully delivered and, if not, understand why delivery failed.
 
@@ -82,7 +82,7 @@ This means:
 
 ```json
 {
-  "kind": 1302,
+  "kind": 7679,
   "pubkey": "<bridge_permanent_pubkey>",
   "tags": [
     ["r", "<email_id>"],
@@ -141,7 +141,7 @@ The content field contains JSON data encrypted with NIP-44 using a temporary eph
 
 ```json
 {
-  "kind": 1302,
+  "kind": 7679,
   "pubkey": "bridge_permanent_pubkey",
   "tags": [
     ["r", "550e8400-e29b-41d4-a716-446655440000"],
@@ -155,7 +155,7 @@ The content field contains JSON data encrypted with NIP-44 using a temporary eph
 
 ```json
 {
-  "kind": 1302,
+  "kind": 7679,
   "pubkey": "bridge_permanent_pubkey",
   "tags": [
     ["r", "550e8400-e29b-41d4-a716-446655440000"],
@@ -171,7 +171,7 @@ The content field contains JSON data encrypted with NIP-44 using a temporary eph
 
 1. Generate ephemeral keypair: `temp_privkey` + `temp_pubkey`
 2. Encrypt content with NIP-44 using `(temp_privkey, sender_pubkey)`
-3. Create kind 1302 event with:
+3. Create kind 7679 event with:
    - `pubkey = bridge_permanent_pubkey`
    - Sign with `bridge_permanent_privkey`
    - Tag `["r", email_id]` where `email_id` is from the original kind 1301's `email-id` tag
@@ -186,7 +186,7 @@ The content field contains JSON data encrypted with NIP-44 using a temporary eph
    ```json
    {
      "authors": ["<bridge_pubkey>"],
-     "kinds": [1302],
+     "kinds": [7679],
      "#r": ["<email_id>"]
    }
    ```
