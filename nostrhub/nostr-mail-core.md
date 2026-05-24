@@ -81,6 +81,39 @@ Sending to a non nostr user require using a bridge.
 }
 ```
 
+### Forwarding from a non nostr user to a nostr user
+
+When a bridge receives an inbound SMTP email addressed to a nostr user, it builds the kind 1301 rumor on the sender's behalf and gift wraps it to the recipient. The bridge MUST set `mail-from` so the recipient's client can distinguish a bridged email from a direct nostr-to-nostr email.
+
+```json
+{
+  "kind": 1301,
+  "pubkey": "<bridge pubkey>",
+  "tags": [
+    ["mail-from", "<legacy_sender_email>"]
+  ],
+  "content": "<RFC 2822 email>"
+}
+```
+
+- `mail-from` is the legacy SMTP sender address (e.g. `alice@example.com`).
+- `rcpt-to` is not used inbound: the recipient is already identified by the gift wrap's `p` tag.
+
+#### Example
+
+Alice (`alice@example.com`, no nostr identity) sends an SMTP email to Bob's bridge address `npub1bob...@bridge.com`. The bridge produces:
+
+```json
+{
+  "kind": 1301,
+  "pubkey": "bridge pubkey",
+  "tags": [
+    ["mail-from", "alice@example.com"]
+  ],
+  "content": "From: Alice <alice@example.com>\nTo: npub1bob...@bridge.com\nSubject: Hello\nDate: Sat, 28 Dec 2024 12:00:00 +0000\n\nHey Bob, how are you?"
+}
+```
+
 ## Authentication
  
 By default, the kind 1301 rumor is unsigned, providing deniability.
