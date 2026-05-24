@@ -11,8 +11,8 @@ Remove gatekeepers from email. Use Nostr as transport instead of SMTP between us
 ```json
 {
   "kind": 1301,
-  "pubkey": "<sender pubkey>",
-  "content": "<RFC 2822 email>"
+  "pubkey": "<sender_pubkey>",
+  "content": "<rfc_2822_email>"
 }
 ```
 
@@ -33,8 +33,8 @@ Nostr emails uses NIP-59 gift wraps for privacy. It's similar to NIP-17.
 ```json
 {
   "kind": 1301,
-  "pubkey": "<sender pubkey>",
-  "content": "<RFC 2822 email>"
+  "pubkey": "<sender_pubkey>",
+  "content": "<rfc_2822_email>"
 }
 ```
 
@@ -55,12 +55,12 @@ Sending to a non nostr user require using a bridge.
 ```json
 {
   "kind": 1301,
-  "pubkey": "<sender pubkey>",
+  "pubkey": "<sender_pubkey>",
   "tags": [
     ["mail-from", "<sender_email>"],
     ["rcpt-to", "<recipient_email>"]
   ],
-  "content": "<RFC 2822 email>"
+  "content": "<rfc_2822_email>"
 }
 ```
 
@@ -88,11 +88,11 @@ When a bridge receives an inbound SMTP email addressed to a nostr user, it build
 ```json
 {
   "kind": 1301,
-  "pubkey": "<bridge pubkey>",
+  "pubkey": "<bridge_pubkey>",
   "tags": [
     ["mail-from", "<legacy_sender_email>"]
   ],
-  "content": "<RFC 2822 email>"
+  "content": "<rfc_2822_email>"
 }
 ```
 
@@ -148,10 +148,10 @@ This allows the BCC recipient's client to:
 ```json
 {
   "kind": 1301,
-  "pubkey": "<alice-pubkey>",
+  "pubkey": "<alice_pubkey>",
   "content": "From: npub1alice...@nostr\nTo: npub1bob...@nostr\nSubject: Hello\nDate: Sat, 28 Dec 2024 12:00:00 +0000\n\nHey Bob, how are you?",
   "tags": [
-    ["public-ref", "<public-event-id>", "wss://relay1.com", "wss://relay2.com"]
+    ["public-ref", "<public_event_id>", "wss://relay1.com", "wss://relay2.com"]
   ]
 }
 ```
