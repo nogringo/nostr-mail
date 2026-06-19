@@ -11,11 +11,11 @@ Remove gatekeepers from email. Use Nostr as transport instead of SMTP between us
 ```json
 {
   "kind": 1301,
-  "pubkey": "<sender pubkey>",
+  "pubkey": "<sender_pubkey>",
   "tags": [
     ["email-id", "<event_id>"]
   ],
-  "content": "<RFC 2822 email>"
+  "content": "<rfc_2822_email>"
 }
 ```
 
@@ -73,8 +73,8 @@ Nostr emails uses NIP-59 gift wraps for privacy. It's similar to NIP-17.
 ```json
 {
   "kind": 1301,
-  "pubkey": "<sender pubkey>",
-  "content": "<RFC 2822 email>"
+  "pubkey": "<sender_pubkey>",
+  "content": "<rfc_2822_email>"
 }
 ```
 
@@ -95,12 +95,12 @@ Sending to a non nostr user require using a bridge.
 ```json
 {
   "kind": 1301,
-  "pubkey": "<sender pubkey>",
+  "pubkey": "<sender_pubkey>",
   "tags": [
     ["mail-from", "<sender_email>"],
     ["rcpt-to", "<recipient_email>"]
   ],
-  "content": "<RFC 2822 email>"
+  "content": "<rfc_2822_email>"
 }
 ```
 
@@ -118,6 +118,39 @@ Sending to a non nostr user require using a bridge.
     ["rcpt-to", "bob@example.com"]
   ],
   "content": "From: npub1alice...@bridge.com\nTo: bob@example.com\nSubject: Hello\nDate: Sat, 28 Dec 2024 12:00:00 +0000\n\nHey Bob, how are you?"
+}
+```
+
+### Forwarding from a non nostr user to a nostr user
+
+When a bridge receives an inbound SMTP email addressed to a nostr user, it builds the kind 1301 rumor on the sender's behalf and gift wraps it to the recipient. The bridge MUST set `mail-from` so the recipient's client can distinguish a bridged email from a direct nostr-to-nostr email.
+
+```json
+{
+  "kind": 1301,
+  "pubkey": "<bridge_pubkey>",
+  "tags": [
+    ["mail-from", "<legacy_sender_email>"]
+  ],
+  "content": "<rfc_2822_email>"
+}
+```
+
+- `mail-from` is the legacy SMTP sender address (e.g. `alice@example.com`).
+- `rcpt-to` is not used inbound: the recipient is already identified by the gift wrap's `p` tag.
+
+#### Example
+
+Alice (`alice@example.com`, no nostr identity) sends an SMTP email to Bob's bridge address `npub1bob...@bridge.com`. The bridge produces:
+
+```json
+{
+  "kind": 1301,
+  "pubkey": "bridge pubkey",
+  "tags": [
+    ["mail-from", "alice@example.com"]
+  ],
+  "content": "From: Alice <alice@example.com>\nTo: npub1bob...@bridge.com\nSubject: Hello\nDate: Sat, 28 Dec 2024 12:00:00 +0000\n\nHey Bob, how are you?"
 }
 ```
 
@@ -155,10 +188,10 @@ This allows the BCC recipient's client to:
 ```json
 {
   "kind": 1301,
-  "pubkey": "<alice-pubkey>",
+  "pubkey": "<alice_pubkey>",
   "content": "From: npub1alice...@nostr\nTo: npub1bob...@nostr\nSubject: Hello\nDate: Sat, 28 Dec 2024 12:00:00 +0000\n\nHey Bob, how are you?",
   "tags": [
-    ["public-ref", "<public-event-id>", "wss://relay1.com", "wss://relay2.com"]
+    ["public-ref", "<public_event_id>", "wss://relay1.com", "wss://relay2.com"]
   ]
 }
 ```
