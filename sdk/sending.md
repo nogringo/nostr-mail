@@ -6,190 +6,147 @@ order: 40
 
 # Sending Emails
 
-Learn how to send emails to both Nostr and legacy email addresses.
+---
+
+## Recipients carry their transport
+
+`send` takes typed recipients, not raw strings. The transport is decided before
+the send starts, so a NIP-05 lookup that fails halfway can never misroute a
+Nostr recipient through a bridge.
+
+```dart
+// Native Nostr, from a pubkey. The display address becomes <npub>@nostr.
+NostrRecipient.fromPubkey(bobPubkey);
+
+// Native Nostr, keeping the address the user typed.
+NostrRecipient(pubkey: bobPubkey, mailAddress: MailAddress(null, 'bob@example.com'));
+
+// Legacy, relayed through your SMTP bridge.
+SmtpRecipient('bob@gmail.com');
+```
+
+To classify an address you only have as text, use `resolveRecipient`:
+
+```dart
+final recipient = await resolveRecipient(to: 'bob@example.com', ndk: ndk);
+```
+
+| Input | Result |
+|-------|--------|
+| `npub1...`, hex, `npub1...@domain` | `NostrRecipient`, no network call |
+| `user@domain` with a NIP-05 hit | `NostrRecipient` |
+| `user@domain` with no such name | `SmtpRecipient` |
+| Network error or malformed answer | throws, rather than guessing |
 
 ---
 
-## Basic Usage
+## Basic send
 
 ```dart
 await client.send(
-  to: 'recipient@example.com',
+  to: [NostrRecipient.fromPubkey(bobPubkey)],
+  cc: [SmtpRecipient('carol@example.com')],
   subject: 'Hello!',
   body: 'This is the email body.',
-  from: 'me@mybridge.com',
 );
 ```
 
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `to` | `List<Recipient>` | required | Primary recipients |
+| `cc` / `bcc` | `List<Recipient>` | `[]` | Copies. Bcc recipients each get their own wrap |
+| `subject` | `String` | required | Subject |
+| `body` | `String` | required | Plain text body |
+| `from` | `MailAddress?` | identity | The From header, defaults to your first identity |
+| `htmlBody` | `String?` | none | HTML alternative |
+| `keepCopy` | `bool` | `true` | Wrap a copy to yourself, which is what fills Sent |
+| `signRumor` | `bool` | `false` | Sign the rumor to prove authorship |
+| `isPublic` | `bool` | `false` | Publish a signed, unwrapped event instead |
+
 ---
 
-## Parameters
+## Sending a prepared MIME message
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `to` | `String` | Yes | Recipient (npub, hex pubkey, or email) |
-| `subject` | `String` | Yes | Email subject |
-| `body` | `String` | Yes | Plain text body |
-| `from` | `String` | Sometimes | Sender address (required for legacy emails) |
-| `htmlBody` | `String?` | No | Optional HTML content |
-| `keepCopy` | `bool` | No | Send copy to self (default: true) |
-
----
-
-## Recipient Formats
-
-The SDK automatically resolves different recipient formats:
-
-### Nostr Native
+When you build the message yourself, attachments included:
 
 ```dart
-// Using npub
-await client.send(
-  to: 'npub1abc123...',
-  subject: 'Hello!',
-  body: 'Message',
-);
-
-// Using hex pubkey
-await client.send(
-  to: '0123456789abcdef...',
-  subject: 'Hello!',
-  body: 'Message',
+await client.sendMime(
+  message,
+  to: [SmtpRecipient('bob@example.com')],
+  mailFrom: 'npub1alice...@bridge.com',
 );
 ```
 
-### NIP-05 Address
-
-```dart
-// Resolves via NIP-05
-await client.send(
-  to: 'alice@nostr.com',
-  subject: 'Hello!',
-  body: 'Message',
-  from: 'me@mybridge.com',
-);
-```
-
-### Legacy Email
-
-```dart
-// Routes via bridge
-await client.send(
-  to: 'alice@gmail.com',
-  subject: 'Hello!',
-  body: 'Message',
-  from: 'me@mybridge.com',  // Required!
-);
-```
+`beforePublish` is called for every outgoing event once its relays are resolved
+and just before it is queued, which is where a client hooks progress reporting.
 
 ---
 
-## Resolution Flow
+## Signed and public emails
 
-```mermaid
-flowchart TD
-    A[to address] --> B{Format?}
-    B -->|npub1...| C[Decode npub]
-    B -->|64 hex chars| D[Use directly]
-    B -->|email format| E{NIP-05 lookup}
-    E -->|Found| F[Use resolved pubkey]
-    E -->|Not found| G[Route via bridge]
-    G --> H[Resolve bridge from 'from' domain]
-```
+`signRumor: true` turns the rumor into a complete Nostr event. The recipient can
+show it to a third party and that third party can verify it, without trusting
+anyone. Deniability is the default precisely because this is not always wanted.
+
+`isPublic: true` publishes the signed event to the relays instead of wrapping
+it. Bcc recipients still get a wrap, carrying a `public-ref` tag that points at
+the public event and the relays where it can be fetched. This is the shape for
+writing to a public entity where transparency is the point.
 
 ---
 
-## Rich HTML Emails
+## Scheduling
+
+A [Scheduler DVM](https://openspecs.uid.ovh/spec/npub1kg4sdvz3l4fr99n2jdz2vdxe2mpacva87hkdetv76ywacsfq5leqquw5te/scheduler-dvm)
+holds the prepared email and publishes it at the requested time.
 
 ```dart
-await client.send(
-  to: 'recipient@example.com',
-  subject: 'Welcome!',
-  body: 'Plain text fallback',
-  htmlBody: '''
-    <html>
-      <body>
-        <h1>Welcome!</h1>
-        <p>This is a <strong>rich</strong> email.</p>
-      </body>
-    </html>
-  ''',
-  from: 'me@mybridge.com',
+final scheduled = await client.scheduleEmail(
+  to: [NostrRecipient.fromPubkey(bobPubkey)],
+  subject: 'Monday reminder',
+  body: 'See you at 10.',
+  at: DateTime.now().add(const Duration(days: 3)),
 );
+
+await client.cancelScheduledEmail(scheduled.packageId);
 ```
+
+Scheduling, listing and cancelling are local-first and work offline. Call
+`startScheduling()` to also receive live DVM feedback and multi-device updates,
+and watch the list with `watchScheduledEmails()`. The email lands in Sent
+through the normal sync once the DVM actually publishes it.
+
+Set the DVM once in `NostrMailClient.create(schedulerDvm: ...)`, or per call
+with `dvmPubkey`.
 
 ---
 
-## Keep Copy for Sync
+## What happens under the hood
 
-By default, the SDK sends a copy of sent emails to yourself:
-
-```dart
-// Copy enabled (default)
-await client.send(
-  to: 'recipient@example.com',
-  subject: 'Hello!',
-  body: 'Message',
-  from: 'me@mybridge.com',
-  keepCopy: true,  // Default
-);
-
-// Disable copy
-await client.send(
-  to: 'recipient@example.com',
-  subject: 'Hello!',
-  body: 'Message',
-  from: 'me@mybridge.com',
-  keepCopy: false,
-);
-```
-
-This allows syncing sent emails across devices.
+1. Build the RFC 2822 message.
+2. Create the kind 1301 rumor, with `email-id` and, for a bridged recipient,
+   `mail-from` and `rcpt-to`.
+3. Move the MIME to Blossom, encrypted, when it exceeds the inline threshold
+   (32 KB).
+4. Gift wrap once per recipient.
+5. Hand each wrap to the offline broadcast queue, which resolves the destination
+   relays and keeps retrying across restarts.
 
 ---
 
-## Bridge Resolution
-
-When sending to a legacy email address, the SDK:
-
-1. Tries NIP-05 resolution first
-2. If NIP-05 fails, extracts domain from `from` address
-3. Queries `_smtp@domain` for bridge pubkey
-4. Sends gift-wrapped email to bridge
-
-```dart
-// Sending to alice@gmail.com from me@mybridge.com
-// 1. NIP-05 lookup for alice@gmail.com (fails - not Nostr)
-// 2. Extract domain from me@mybridge.com -> mybridge.com
-// 3. Query _smtp@mybridge.com for bridge pubkey
-// 4. Send to bridge, which forwards via SMTP
-```
-
----
-
-## Error Handling
+## Error handling
 
 ```dart
 try {
-  await client.send(
-    to: 'invalid-address',
-    subject: 'Test',
-    body: 'Test',
-  );
+  await client.send(to: [recipient], subject: 'Test', body: 'Test');
+} on NetworkRequiredException catch (e) {
+  print('Offline during ${e.operation}, ask the user to reconnect');
 } on RecipientResolutionException catch (e) {
-  print('Could not resolve recipient: ${e.address}');
+  print('No such recipient: ${e.message}');
 } on NostrMailException catch (e) {
   print('Error: ${e.message}');
 }
 ```
 
----
-
-## What Happens Under the Hood
-
-1. **Resolve recipient** to Nostr pubkey
-2. **Build RFC 2822** email content
-3. **Create Kind 1301** email event
-4. **Gift wrap** with NIP-59
-5. **Publish** to recipient's relays
-6. **Send copy** to sender (if enabled)
+`NetworkRequiredException` means the lookup never got an answer.
+`RecipientResolutionException` means it got one, and the answer was no.

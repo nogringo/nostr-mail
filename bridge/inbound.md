@@ -57,11 +57,15 @@ PLUGIN_PATH=/path/to/plugin  # Optional
 ### How It Works
 
 1. Email arrives at SMTP server
-2. Service extracts recipient from `To:` header
-3. Looks up recipient's npub via NIP-05
-4. Fetches recipient's DM relays (kind 10050)
-5. Gift-wraps the email content (NIP-59)
-6. Publishes to recipient's relays
+2. Service takes the recipients from the SMTP envelope
+3. Looks up each recipient's pubkey via NIP-05
+4. Fetches the recipient's DM relays (kind 10050)
+5. Builds the kind 1301 rumor, setting `mail-from` to the legacy sender
+6. Gift-wraps it (NIP-59) and publishes to the recipient's relays
+
+The `mail-from` tag is what lets the recipient's client tell a bridged email
+from a native one. There is no `rcpt-to` inbound: the recipient is already the
+`p` tag of the wrap.
 
 ---
 
@@ -124,6 +128,31 @@ The service resolves recipients using NIP-05:
 | `alice@bridge.com` | Query NIP-05 for `alice@bridge.com` |
 | `npub1...@bridge.com` | Extract npub directly from address |
 | `npub1...@nostr` | Extract npub directly from address |
+
+A hex pubkey as the local part works the same way. Take the recipients from the
+SMTP envelope rather than the headers: a Bcc recipient is in the envelope and
+nowhere else.
+
+---
+
+## Large messages
+
+An email whose MIME does not fit inside a gift wrap is encrypted, uploaded to a
+Blossom server and referenced from the kind 1301 event. NIP-44 caps a plaintext
+at 65535 bytes and NIP-59 encrypts twice, so the practical inline budget is
+well under that. Without this, a bridge can only forward small mail.
+
+---
+
+## User preferences
+
+Read the recipient's public settings (kind 30078, `d = nostr-mail/settings`)
+before delivering:
+
+| Field | Effect |
+|-------|--------|
+| `dm_copy` | Also send a DM copy of the email |
+| `prefer_nostr` | This key's NIP-05 addresses want their mail over Nostr |
 
 ---
 

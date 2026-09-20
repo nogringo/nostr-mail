@@ -5,115 +5,69 @@ order: 50
 expanded: true
 ---
 
-# Flutter Client
+# Nmail
 
-A cross-platform email client for Nostr Mail built with Flutter.
+The reference Nostr Mail client, built with Flutter.
 
-[!button icon="globe" text="Try Online" target="blank"](https://nogringo.github.io/nostr-mail-client)
+[!button icon="mail" text="Open Nmail" target="blank"](https://app.nostrmail.org)
+[!button icon="device-mobile" text="Get it on ZapStore" target="blank" variant="secondary"](https://zapstore.dev/apps/app.nostrmail.client)
+
+Source: [nogringo/nostr-mail-client](https://github.com/nogringo/nostr-mail-client).
+
+---
+
+## Where to get it
+
+| Platform | Where |
+|----------|-------|
+| Web | [app.nostrmail.org](https://app.nostrmail.org) |
+| Android | [ZapStore](https://zapstore.dev/apps/app.nostrmail.client), or an APK from [Releases](https://github.com/nogringo/nostr-mail-client/releases/latest) |
+| Linux | `.AppImage` or `.deb` from [Releases](https://github.com/nogringo/nostr-mail-client/releases/latest) |
+| macOS | `.dmg` from [Releases](https://github.com/nogringo/nostr-mail-client/releases/latest) |
+
+Android ships in two flavors: the standard build, which may use Firebase for
+push, and a FOSS build with no Google dependency, which uses UnifiedPush
+instead. ZapStore distributes the FOSS build.
 
 ---
 
 ## Features
 
-- Send and receive emails over Nostr
-- Support for legacy email addresses via bridges
-- Real-time inbox updates
-- Secure key management with Flutter Secure Storage
-- Light and dark themes
-- Cross-platform (iOS, Android, Web, Desktop)
+- Inbox, Sent, Archive and Trash, with stars, read state and custom folders
+- Rich text composing, attachments of any size, drag and drop
+- Send to Nostr recipients and to ordinary email addresses in the same message,
+  choosing the transport per recipient
+- Scheduled sending
+- Contacts shared with any client that speaks the same address book
+- Multiple accounts, switched without logging out
+- Offline reading, with sends and uploads queued until you are back
+- Push notifications
+- Light and dark themes, following the system
 
 ---
 
-## Screenshots
+## Privacy in the app
 
-Coming soon...
+- Emails are gift wrapped end to end. Relays see a wrap addressed to a pubkey.
+- Folders, read state and stars are wrapped too, so the metadata does not leak.
+- Photos and videos lose their location, capture date and device details before
+  they leave the app, at full quality.
+- Your key never leaves the device, and does not have to be on it at all: a
+  signer app, a browser extension or a remote bunker can hold it instead.
 
 ---
 
-## Technology Stack
+## Technology
 
 | Technology | Purpose |
 |------------|---------|
-| Flutter | Cross-platform UI |
-| GetX | State management & routing |
-| NDK | Nostr protocol |
-| nostr_mail | Email over Nostr SDK |
-| Sembast | Local storage |
-| Toastification | Toast notifications |
+| Flutter | Android, Linux, macOS and web from one codebase |
+| GetX, go_router | State management and routing |
+| [ndk](https://pub.dev/packages/ndk) | Nostr protocol, relays, signers |
+| [nostr_mail](https://pub.dev/packages/nostr_mail) | Email over Nostr |
+| drift, SQLite | Local mailbox with full-text search |
+| Blossom | Large emails and attachments |
 
----
-
-## Architecture
-
-The client follows the MVC pattern with GetX:
-
-```
-lib/
-├── app/
-│   ├── bindings/     # Dependency injection
-│   └── routes/       # Navigation routes
-├── controllers/      # Business logic
-├── models/           # Data models
-├── services/         # API & storage services
-├── utils/            # Utilities
-└── views/            # UI screens
-    ├── auth/         # Login/Register
-    ├── compose/      # Compose email
-    ├── email/        # Email detail
-    ├── inbox/        # Inbox list
-    └── profile/      # User profile
-```
-
----
-
-## Quick Navigation
-
-||| [:icon-download: Installation](installation.md)
-Build and run the client
-||| [:icon-key: Authentication](authentication.md)
-Key management and login
-||| [:icon-inbox: Using the App](usage.md)
-How to use the email client
-|||
-
----
-
-## Requirements
-
-- Flutter SDK 3.10.4 or higher
-- Dart SDK 3.10.4 or higher
-
----
-
-## Quick Start
-
-```bash
-# Clone the repository
-git clone https://github.com/nogringo/nostr-mail-client
-cd nostr-mail-client
-
-# Install dependencies
-flutter pub get
-
-# Run the app
-flutter run
-```
-
----
-
-## Dependencies
-
-```yaml
-dependencies:
-  flutter:
-    sdk: flutter
-  flutter_secure_storage: ^10.0.0
-  get: ^4.7.3
-  ndk: ^0.6.1-dev.4
-  path_provider: ^2.1.5
-  sembast: ^3.8.6
-  toastification: ^3.0.3
-  nostr_mail: ^1.1.0
-  ndk_rust_verifier: ^0.4.2
-  http: ^1.6.0
-```
+The repository is a Flutter workspace: `packages/nmail_core` holds the product
+code, `apps/nmail_standard` and `apps/nmail_foss` are the two thin app
+wrappers.

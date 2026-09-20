@@ -61,8 +61,15 @@ MAILGUN_DOMAIN=mail.example.com
 1. Service subscribes to gift-wrapped events (kind 1059) for its pubkey
 2. When an event arrives, it unwraps the NIP-59 encryption
 3. Extracts the email content from the kind 1301 rumor
-4. Parses the `To:` header to find the legacy recipient
+4. Reads the envelope from the rumor's tags: `mail-from` and one `rcpt-to` per
+   recipient
 5. Sends via configured provider (SMTP or Mailgun)
+6. Reports the outcome with a kind 7679 event quoting the rumor's `email-id`
+
+!!!warning The envelope is in the tags
+Route on `rcpt-to`, not on the `To:` header. A Bcc recipient never appears in
+the headers, and a header can say anything.
+!!!
 
 ---
 
@@ -153,6 +160,20 @@ After unwrapping, the inner rumor:
 ```json
 {
   "kind": 1301,
-  "content": "From: sender@nostr\nTo: recipient@gmail.com\nSubject: Hello\n\nMessage body"
+  "pubkey": "<sender_pubkey>",
+  "tags": [
+    ["email-id", "550e8400-e29b-41d4-a716-446655440000"],
+    ["mail-from", "npub1alice...@bridge.com"],
+    ["rcpt-to", "recipient@gmail.com"]
+  ],
+  "content": "From: npub1alice...@bridge.com\nTo: recipient@gmail.com\nSubject: Hello\n\nMessage body"
 }
 ```
+
+---
+
+## Reporting the outcome
+
+Every send gets a kind 7679 delivery status notification, quoting the
+`email-id` and encrypted to the sender with an ephemeral key. See
+[Delivery Status](dsn.md).

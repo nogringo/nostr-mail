@@ -1,18 +1,21 @@
 {
-  "name": "nostr-mail",
+  "name": "nostr-mail-docs",
   "version": "1.0.0",
-  "description": "A bridge between legacy email and the Nostr protocol. Send and receive emails via Nostr using NIP-59 gift-wrapped messages.",
-  "main": "index.js",
+  "private": true,
+  "description": "Documentation site for Nostr Mail: the protocol, the bridges, the SDKs and the Nmail client.",
   "scripts": {
-    "docs:dev": "npx retypeapp watch",
-    "docs:build": "npx retypeapp build",
-    "docs:serve": "npx retypeapp serve"
+    "docs:dev": "retype watch",
+    "docs:build": "retype build",
+    "docs:serve": "retype serve"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "keywords": [
+    "nostr",
+    "email",
+    "documentation"
+  ],
+  "license": "MIT",
   "type": "commonjs",
   "devDependencies": {
-    "retypeapp": "^3.11.0"
+    "retypeapp": "^4.6.0"
   }
 }

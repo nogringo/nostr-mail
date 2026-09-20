@@ -21,7 +21,7 @@ Public settings are stored unencrypted and can be read by anyone.
   "kind": 30078,
   "pubkey": "<user_pubkey>",
   "tags": [["d", "nostr-mail/settings"]],
-  "content": "{\"dm_copy\": true}"
+  "content": "{\"dm_copy\": true, \"prefer_nostr\": true}"
 }
 ```
 
@@ -30,6 +30,19 @@ Public settings are stored unencrypted and can be read by anyone.
 | Field | Type | Description |
 |-------|------|-------------|
 | `dm_copy` | boolean | Request bridges to send a DM copy of incoming emails |
+| `prefer_nostr` | boolean | Deliver email for this key's NIP-05 addresses over Nostr rather than SMTP. |
+
+When updating either settings event, a client MUST keep the fields of `content` it does not change.
+
+## Transport Preference
+
+For a recipient given as an email address `name@domain`:
+
+1. Resolve it through NIP-05. If it does not resolve to a pubkey, deliver over SMTP.
+2. Fetch the pubkey's public settings from its NIP-65 write relays.
+3. If `prefer_nostr` is `true`, deliver over Nostr. Otherwise, deliver over SMTP.
+
+A failed lookup counts as `false`.
 
 ## Private Settings
 
@@ -59,9 +72,9 @@ After decryption, the content contains:
 Identities are user-defined "From" addresses stored as RFC 5322 formatted strings. Each entry can be used directly in the `From:` header without any transformation.
 
 **Format examples:**
-- `"Alice Real <npub1abc...@nostr.mail>"` — name + address
-- `"npub1abc...@bridge.com"` — address only (no name)
-- `"Pseudo <alice@example.com>"` — custom name + legacy email
+- `"Alice Real <npub1abc...@nostr.mail>"`: name + address
+- `"npub1abc...@bridge.com"`: address only (no name)
+- `"Pseudo <alice@example.com>"`: custom name + legacy email
 
 **Behavior:**
 - If `identities` is empty or absent, clients SHOULD auto-generate available addresses from `npub@nostr` and configured bridges

@@ -6,22 +6,22 @@ order: 80
 
 # Getting Started
 
-This guide will help you get started with Nostr Mail depending on your use case.
+Pick the path that matches what you want to do.
 
 ---
 
 ## Choose Your Path
 
 +++ I want to send/receive emails
-Use the **Flutter Client** or build your own app with the **Dart SDK**.
+Use **Nmail**, the reference client, or build your own app with an **SDK**.
 
-[:icon-device-mobile: Client Setup](/client/) | [:icon-package: SDK Documentation](/sdk/)
+[:icon-device-mobile: Nmail](/client/) | [:icon-package: SDKs](/sdk/)
 +++ I want to run my own bridge
-Deploy the **Bridge** to connect legacy email with Nostr.
+Deploy a **bridge** to connect legacy email with Nostr.
 
 [:icon-server: Bridge Setup](/bridge/)
 +++ I want to understand the protocol
-Read the **Protocol Specification** to learn how it works.
+Read the **protocol specification** to learn how it works.
 
 [:icon-book: Protocol](/protocol/)
 +++
@@ -30,61 +30,67 @@ Read the **Protocol Specification** to learn how it works.
 
 ## For End Users
 
-### Use the Flutter Client
+[!button icon="mail" text="Open Nmail" target="blank"](https://app.nostrmail.org)
 
-[!button icon="globe" text="Try Online" target="blank"](https://nogringo.github.io/nostr-mail-client)
+1. Open the web app, or install it from
+   [ZapStore](https://zapstore.dev/apps/app.nostrmail.client) or the
+   [releases page](https://github.com/nogringo/nostr-mail-client/releases/latest).
+2. Generate a key, or sign in with a signer you already use.
+3. Back up your key, then start writing.
 
-1. Open the web client or download the app
-2. Generate or import your Nostr keys
-3. Start sending and receiving emails!
+Your address is `<npub>@nostr` out of the box. A readable address like
+`alice@example.com` comes from a NIP-05 provider, and is also what lets people
+on ordinary email reach you.
 
 ---
 
 ## For Developers
 
-### Using the Dart SDK
-
-Install the package:
+### Dart and Flutter
 
 ```bash
 dart pub add nostr_mail
 ```
 
-Basic usage:
-
 ```dart
-import 'package:nostr_mail/nostr_mail.dart';
-import 'package:ndk/ndk.dart';
-import 'package:sembast/sembast_io.dart';
-
-// Initialize NDK with your keys
-final ndk = Ndk(NdkConfig(
-  eventSigner: Bip340EventSigner(privateKey: 'your-hex-key'),
-  bootstrapRelays: ['wss://relay.damus.io', 'wss://nos.lol'],
-));
-
-// Open local database
-final db = await databaseFactoryIo.openDatabase('emails.db');
-
-// Create client
-final client = NostrMailClient(ndk: ndk, db: db);
-
-// Send an email
-await client.send(
-  to: 'recipient@example.com',
-  subject: 'Hello from Nostr!',
-  body: 'This email was sent over the Nostr protocol.',
-  from: 'me@bridge.mail',
+final client = await NostrMailClient.create(
+  ndk: ndk,
+  database: database,
+  db: db,
+  blossomCache: blossomCache,
+  syncEngine: syncEngine,
 );
 
-// Listen for incoming emails
-await for (final email in client.watchInbox()) {
-  print('New email from: ${email.from}');
-  print('Subject: ${email.subject}');
-}
+await client.send(
+  to: [NostrRecipient.fromPubkey(bobPubkey)],
+  subject: 'Hello from Nostr!',
+  body: 'This email was sent over the Nostr protocol.',
+);
+
+client.onEmail.listen((email) {
+  print('New email: ${email.mime.decodeSubject()}');
+});
 ```
 
-[Full SDK Documentation :icon-arrow-right:](/sdk/)
+[Full SDK documentation :icon-arrow-right:](/sdk/)
+
+### JavaScript and TypeScript
+
+```bash
+npm install nostr-mail
+```
+
+```javascript
+const client = new NostrMailClient(secretKey);
+
+await client.sendEmail({
+  to: 'npub1...',
+  subject: 'Hello from Nostr',
+  text: 'Hey! This is a private email sent over Nostr.',
+});
+```
+
+[JavaScript SDK :icon-arrow-right:](/sdk/javascript/)
 
 ---
 
@@ -92,9 +98,9 @@ await for (final email in client.watchInbox()) {
 
 ### Prerequisites
 
-- A server with Docker (recommended) or Node.js
+- A server with Docker, or Node.js and Dart
 - A domain with MX records configured
-- Nostr private key (hex format)
+- A Nostr private key for the bridge
 
 ### Quick Start with Docker
 
@@ -103,32 +109,31 @@ git clone https://github.com/nogringo/nostr-mail-bridge
 cd nostr-mail-bridge
 cp .env.example .env
 # Edit .env with your configuration
-docker-compose up -d
+docker compose up -d
 ```
 
-[Full Bridge Setup :icon-arrow-right:](/bridge/)
+[Full bridge setup :icon-arrow-right:](/bridge/)
 
 ---
 
 ## Email Address Formats
 
-Nostr Mail supports multiple address formats:
-
 | Format | Example | Best For |
 |--------|---------|----------|
-| NIP-05 | `alice@bridge.com` | User-friendly addresses |
+| NIP-05 | `alice@example.com` | Human-readable, reachable from legacy email |
 | npub@domain | `npub1...@bridge.com` | Sovereign identity with legacy compatibility |
-| npub@nostr | `npub1...@nostr` | Nostr-native communication |
+| npub@nostr | `npub1...@nostr` | Nostr-to-Nostr communication |
 
 !!!warning Note
-The `npub@nostr` format is not routable by legacy email servers. Use it only for Nostr-to-Nostr communication.
+The `npub@nostr` format is not routable by legacy email servers. Use it only for
+Nostr-to-Nostr communication.
 !!!
 
 ---
 
 ## Next Steps
 
-- [:icon-book: Understand the Protocol](/protocol/)
-- [:icon-server: Set up a Bridge](/bridge/)
-- [:icon-package: Build with the SDK](/sdk/)
-- [:icon-device-mobile: Try the Client](/client/)
+- [:icon-book: Understand the protocol](/protocol/)
+- [:icon-server: Set up a bridge](/bridge/)
+- [:icon-package: Build with an SDK](/sdk/)
+- [:icon-device-mobile: Use Nmail](/client/)

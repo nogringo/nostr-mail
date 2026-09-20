@@ -6,19 +6,23 @@ order: 100
 
 # Nostr Mail
 
-Remove gatekeepers from email. Use Nostr as transport instead of SMTP between users.
+Remove gatekeepers from email. Use Nostr as transport instead of SMTP between
+users.
 
 ---
 
 ## What is Nostr Mail?
 
-Nostr Mail is a decentralized email system that uses the [Nostr protocol](https://nostr.com) as its transport layer. It allows you to send and receive emails without relying on traditional email providers.
+Nostr Mail carries ordinary RFC 2822 email over [Nostr](https://nostr.how).
+Your address is derived from your keys, your messages are gift wrapped
+end to end, and no provider stands between you and the person you write to. When
+the other side is not on Nostr, a bridge speaks SMTP on your behalf.
 
 !!!success Key Benefits
-- **Decentralized**: No single point of failure or control
-- **Censorship-resistant**: Your messages go through Nostr relays
-- **Privacy-focused**: End-to-end encrypted with NIP-59 gift wrapping
-- **Interoperable**: Works with legacy email via bridges
+- **Decentralized**: no single point of failure or control
+- **Censorship-resistant**: your messages go through Nostr relays
+- **Privacy-focused**: end-to-end encrypted with NIP-59 gift wrapping
+- **Interoperable**: works with legacy email via bridges
 !!!
 
 ---
@@ -50,12 +54,19 @@ The email-over-Nostr specification using Kind 1301 events.
 Bidirectional bridge between legacy email (SMTP) and Nostr.
 [Learn more :icon-arrow-right:](/bridge/)
 ||| [!badge SDK]
-Dart library for building Nostr Mail applications.
+Dart and JavaScript libraries for building Nostr Mail applications.
 [Learn more :icon-arrow-right:](/sdk/)
 ||| [!badge Client]
-Flutter application for sending and receiving emails.
+Nmail, the reference client for Android, Linux and the web.
 [Learn more :icon-arrow-right:](/client/)
 |||
+
+---
+
+## Try it
+
+[!button icon="mail" text="Open Nmail" target="blank"](https://app.nostrmail.org)
+[!button icon="globe" text="nostrmail.org" target="blank" variant="secondary"](https://nostrmail.org)
 
 ---
 
@@ -64,8 +75,8 @@ Flutter application for sending and receiving emails.
 - [:icon-book: Protocol Specification](/protocol/)
 - [:icon-rocket: Getting Started](/getting-started/)
 - [:icon-server: Bridge Setup](/bridge/)
-- [:icon-package: Dart SDK](/sdk/)
-- [:icon-device-mobile: Flutter Client](/client/)
+- [:icon-package: SDKs](/sdk/)
+- [:icon-device-mobile: Nmail Client](/client/)
 
 ---
 
@@ -75,10 +86,13 @@ Flutter application for sending and receiving emails.
 |-----|-------------|-------|
 | [NIP-01](https://github.com/nostr-protocol/nips/blob/master/01.md) | Basic protocol | Event structure |
 | [NIP-05](https://github.com/nostr-protocol/nips/blob/master/05.md) | User discovery | `user@domain` resolution |
+| [NIP-09](https://github.com/nostr-protocol/nips/blob/master/09.md) | Event deletion | Deleting emails and labels |
 | [NIP-17](https://github.com/nostr-protocol/nips/blob/master/17.md) | Private DM relays | Kind 10050 DM relays |
-| [NIP-51](https://github.com/nostr-protocol/nips/blob/master/51.md) | Lists | Whitelist management |
+| [NIP-32](https://github.com/nostr-protocol/nips/blob/master/32.md) | Labeling | Folders, read state, stars |
+| [NIP-44](https://github.com/nostr-protocol/nips/blob/master/44.md) | Encryption | Sealing and settings |
 | [NIP-59](https://github.com/nostr-protocol/nips/blob/master/59.md) | Gift-wrapped events | End-to-end encryption |
 | [NIP-65](https://github.com/nostr-protocol/nips/blob/master/65.md) | Relay list metadata | Relay discovery |
+| [NIP-78](https://github.com/nostr-protocol/nips/blob/master/78.md) | Application data | Settings sync |
 
 ---
 

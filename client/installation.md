@@ -6,16 +6,23 @@ order: 30
 
 # Installation
 
-Build and run the Nostr Mail client on your platform.
+---
+
+## Install the app
+
+Nothing to build: use [app.nostrmail.org](https://app.nostrmail.org), install
+from [ZapStore](https://zapstore.dev/apps/app.nostrmail.client), or download an
+Android, Linux or macOS build from the
+[releases page](https://github.com/nogringo/nostr-mail-client/releases/latest).
+
+The rest of this page is for building from source.
 
 ---
 
 ## Prerequisites
 
-- [Flutter SDK](https://flutter.dev/docs/get-started/install) 3.10.4+
-- [Dart SDK](https://dart.dev/get-dart) 3.10.4+
-
-Verify your installation:
+- [Flutter](https://flutter.dev/docs/get-started/install) with Dart SDK 3.12.2
+  or newer
 
 ```bash
 flutter doctor
@@ -23,155 +30,82 @@ flutter doctor
 
 ---
 
-## Clone & Setup
+## Clone
 
 ```bash
-# Clone the repository
 git clone https://github.com/nogringo/nostr-mail-client
 cd nostr-mail-client
-
-# Install dependencies
 flutter pub get
 ```
 
+The repository is a Flutter workspace. `flutter pub get` at the root resolves
+`packages/nmail_core` and both app wrappers together.
+
+| Path | What it is |
+|------|------------|
+| `packages/nmail_core` | The product code, shared by every build |
+| `apps/nmail_standard` | The standard app, may depend on Firebase |
+| `apps/nmail_foss` | The FOSS app, no Google dependency, UnifiedPush for notifications |
+
+The FOSS wrapper carries the ZapStore build as an Android flavor, so the two
+distributions share one app and one feature set.
+
 ---
 
-## Run the App
+## Run
 
-### Development
+Run from an app wrapper, not from the root:
 
 ```bash
-# Default platform
-flutter run
-
-# Specific platform
-flutter run -d chrome       # Web
-flutter run -d macos        # macOS
-flutter run -d windows      # Windows
-flutter run -d linux        # Linux
+cd apps/nmail_foss
+flutter run -d chrome    # web
+flutter run -d linux     # Linux desktop
+flutter run -d macos     # macOS desktop
+flutter run -d <device>  # Android
 ```
 
-### Release Build
+Use `apps/nmail_standard` for the build that includes Firebase messaging.
+
+---
+
+## Build
 
 +++ Android
 ```bash
+cd apps/nmail_foss
 flutter build apk --release
-# Output: build/app/outputs/flutter-apk/app-release.apk
-```
-+++ iOS
-```bash
-flutter build ios --release
-# Then archive with Xcode
 ```
 +++ Web
 ```bash
+cd apps/nmail_foss
 flutter build web --release
-# Output: build/web/
-```
-+++ macOS
-```bash
-flutter build macos --release
-# Output: build/macos/Build/Products/Release/
-```
-+++ Windows
-```bash
-flutter build windows --release
-# Output: build/windows/runner/Release/
 ```
 +++ Linux
 ```bash
+cd apps/nmail_foss
 flutter build linux --release
-# Output: build/linux/x64/release/bundle/
+```
++++ macOS
+```bash
+cd apps/nmail_foss
+flutter build macos --release
 ```
 +++
 
----
-
-## Platform-Specific Setup
-
-### Android
-
-No additional setup required.
-
-### iOS
-
-1. Open `ios/Runner.xcworkspace` in Xcode
-2. Set your development team
-3. Configure signing
-
-### Web
-
-Add to `web/index.html` if needed for CORS:
-
-```html
-<script>
-  // CORS proxy configuration if needed
-</script>
-```
-
-### Desktop (macOS/Windows/Linux)
-
-Enable desktop support:
-
-```bash
-flutter config --enable-macos-desktop
-flutter config --enable-windows-desktop
-flutter config --enable-linux-desktop
-```
-
----
-
-## Configuration
-
-### Relays
-
-The default relays are configured in the app. To customize:
-
-1. Open `lib/services/ndk_service.dart`
-2. Modify the `bootstrapRelays` list
-
-```dart
-final ndk = Ndk(NdkConfig(
-  bootstrapRelays: [
-    'wss://relay.damus.io',
-    'wss://nos.lol',
-    // Add your relays here
-  ],
-));
-```
+!!!warning Web builds
+The mailbox is a SQLite database running in the browser. `sqlite3.wasm` and
+`drift_worker.js` have to be present in `web/`, matching the resolved `sqlite3`
+and `drift` versions. See [Local Storage](/sdk/storage/).
+!!!
 
 ---
 
 ## Troubleshooting
 
-### Dependency Issues
-
 ```bash
-flutter clean
-flutter pub get
+flutter clean && flutter pub get
 ```
 
-### Build Errors
-
-```bash
-# Update Flutter
-flutter upgrade
-
-# Regenerate platform files
-flutter create --platforms=android,ios,web .
-```
-
-### Rust Issues (NDK)
-
-The NDK uses Rust for signature verification. If you encounter issues:
-
-```bash
-# Install Rust
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-
-# Add targets
-rustup target add aarch64-linux-android
-rustup target add armv7-linux-androideabi
-rustup target add x86_64-linux-android
-rustup target add i686-linux-android
-```
+If a dependency fails to resolve, check that your Dart SDK matches the
+`environment` constraint in `pubspec.yaml`. The client tracks the SDK closely
+and tends to need a recent Flutter.

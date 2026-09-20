@@ -14,7 +14,7 @@ All Nostr Mail labels use the namespace: `mail`
 
 ### Adding a Label
 
-To add a label to an email, publish a kind 1985 event:
+To add a label to an email, sign a kind 1985 event and put it, without a seal, in a NIP-59 gift wrap (kind 1059) addressed to the user:
 
 ```json
 {
@@ -31,15 +31,15 @@ To add a label to an email, publish a kind 1985 event:
 
 ### Removing a Label
 
-To remove a label, publish a NIP-09 deletion request (kind 5) targeting the label event:
+To remove a label, publish a NIP-09 deletion request (kind 5) targeting the gift wrap of the label event:
 
 ```json
 {
   "kind": 5,
   "pubkey": "<user_pubkey>",
   "tags": [
-    ["e", "<label_event_id>"],
-    ["k", "1985"]
+    ["e", "<label_gift_wrap_id>"],
+    ["k", "1059"]
   ],
   "content": ""
 }
@@ -133,50 +133,16 @@ Two separate events:
 
 ### Restore Email from Trash
 
-Publish a deletion request for the `folder:trash` label event:
+Publish a deletion request for the gift wrap of the `folder:trash` label event:
 
 ```json
 {
   "kind": 5,
   "tags": [
-    ["e", "<trash_label_event_id>"],
-    ["k", "1985"]
+    ["e", "<trash_label_gift_wrap_id>"],
+    ["k", "1059"]
   ],
   "content": ""
-}
-```
-
-## Querying Labels
-
-### Get All Labels for a User
-
-```json
-{
-  "kinds": [1985],
-  "authors": ["<user_pubkey>"],
-  "#L": ["mail"]
-}
-```
-
-### Get All Emails in Trash
-
-```json
-{
-  "kinds": [1985],
-  "authors": ["<user_pubkey>"],
-  "#L": ["mail"],
-  "#l": ["folder:trash"]
-}
-```
-
-### Get All Read Emails
-
-```json
-{
-  "kinds": [1985],
-  "authors": ["<user_pubkey>"],
-  "#L": ["mail"],
-  "#l": ["state:read"]
 }
 ```
 
@@ -190,12 +156,3 @@ When an email has no associated label events:
 | Read state | Unread |
 | Starred | Not starred |
 | Important | Not important |
-
-## Synchronization
-
-Clients should:
-
-1. Subscribe to kind 1985 events with `#L: ["mail"]` for the user's pubkey
-2. Subscribe to kind 5 deletion events to track label removals
-3. Maintain a local cache of labels for performance
-4. Publish labels to the user's write relays (NIP-65 kind 10002)

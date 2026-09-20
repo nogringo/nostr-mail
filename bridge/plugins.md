@@ -73,11 +73,20 @@ Set the plugin path in your environment:
 
 ```bash
 PLUGIN_PATH=/path/to/your/plugin
+PLUGIN_TIMEOUT_MS=30000   # optional, how long the plugin may take
 ```
+
+A plugin that does not answer in time is given up on. Decide what that should
+mean for your bridge: a filter that fails open accepts spam, one that fails
+closed loses mail.
 
 ---
 
 ## Available Plugins
+
+The repository ships two JavaScript plugins to start from,
+`bridge-plugins/example.js` and `bridge-plugins/whitelist.js`, plus the Dart
+plugin below.
 
 ### uid_ovh
 

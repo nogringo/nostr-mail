@@ -6,208 +6,171 @@ order: 30
 
 # Receiving Emails
 
-Learn how to receive emails in real-time and sync historical messages.
-
 ---
 
-## Real-Time Inbox
+## Nothing to call
 
-Watch for new emails as they arrive:
+The sync engine keeps the ndk cache filled from the relays and revisits it on
+its own. The client declares what the logged-in account needs and follows
+logins and account switches. A freshly created client is already syncing.
+
+Pull to refresh maps to one call:
 
 ```dart
-await for (final email in client.watchInbox()) {
-  print('From: ${email.from}');
-  print('Subject: ${email.subject}');
-  print('Body: ${email.body}');
-}
+await client.fetchRecent();
 ```
 
 ---
 
-## Historical Sync
-
-Fetch and store all historical emails:
+## Watching
 
 ```dart
-// Sync all emails from relays to local DB
-await client.sync();
-
-// Then read from local DB
-final emails = await client.getEmails();
-```
-
----
-
-## Combined Approach
-
-Typical usage pattern:
-
-```dart
-// 1. Initial sync
-await client.sync();
-
-// 2. Get cached emails
-final emails = await client.getEmails();
-displayEmails(emails);
-
-// 3. Watch for new emails
-client.watchInbox().listen((email) {
-  displayNewEmail(email);
+client.onEmail.listen((email) {
+  print('${email.from}: ${email.subject}');
 });
 ```
 
----
-
-## Email Model
+`watch()` gives the full stream of `MailEvent`s, which is what a mailbox UI
+listens to: `EmailReceived`, `LabelAdded`, `LabelRemoved`, `EmailDeleted`.
+The narrow streams `onLabel`, `onTrash`, `onRead` and `onStarred` are there for
+the common cases. `stopWatching()` ends them.
 
 ```dart
-class Email {
-  final String id;           // Unique event ID
-  final String from;         // Sender address
-  final String to;           // Recipient address
-  final String subject;      // Email subject
-  final String body;         // Plain text body
-  final DateTime date;       // Email date
-  final String senderPubkey; // Nostr pubkey of sender
-  final String rawContent;   // Original RFC 2822 content
+client.watchUnreadCount(folder: 'inbox').listen((count) => badge.value = count);
+```
+
+---
+
+## Listing a mailbox
+
+`getSummaries` is what a message list should call. It reads only the indexed
+columns a row draws, so it never touches the stored MIME nor parses it.
+
+```dart
+final page = await client.getSummaries(folder: 'inbox', limit: 50, offset: 0);
+
+for (final row in page.items) {
+  print('${row.isRead ? ' ' : '*'} ${row.fromName ?? row.from}: ${row.subject}');
+  print('  ${row.preview}');
+}
+
+if (page.hasMore) {
+  // next page at offset: page.offset + page.items.length
 }
 ```
 
----
+A row carries `to`, `cc`, `bcc`, `date`, `folder`, `labels`, `attachmentRefs`,
+`isPublic` and `isBridged`. For a native Nostr sender, `from` is `<npub>@nostr`
+and the real name lives in the profile behind `senderPubkey`: resolve that
+first, and fall back to `fromName ?? from`.
 
-## Query Emails
+Filters: `folder`, `isRead`, `isStarred`, `hasAttachments`, `senderPubkey`,
+`fromAddress`, `search`.
 
-### Get All Emails
+!!!warning Filtering by sender
+A bridged email carries the bridge's pubkey, shared by every sender behind it,
+so pass `fromAddress` as well for those rows. The address alone would let
+anyone claim it.
+!!!
 
 ```dart
-final emails = await client.getEmails();
-```
-
-### With Pagination
-
-```dart
-final emails = await client.getEmails(
-  limit: 20,
-  offset: 0,
+final fromSender = await client.getSummaries(
+  senderPubkey: row.senderPubkey,
+  fromAddress: row.isBridged ? row.from : null,
 );
 ```
 
-### Get Single Email
+---
+
+## Opening one email
 
 ```dart
-final email = await client.getEmail('event-id-here');
-if (email != null) {
-  print(email.body);
+final email = await client.getEmail(row.id);
+print(email!.body);
+```
+
+`Email` exposes `subject`, `body`, `textBody`, `htmlBody`, `date`, `from`,
+`attachmentRefs`, and the parsed `mime` underneath.
+
+Attachment bytes are loaded on demand, from the Blossom cache when they are
+there and by rebuilding the original MIME when they are not:
+
+```dart
+final bytes = await client.getAttachmentBytes(email, email.attachmentRefs.first);
+final eml = await client.getRawMimeText(email); // byte-exact original
+```
+
+---
+
+## Folders and labels
+
+Folders, read state and stars are NIP-32 labels, each in its own gift wrap.
+The client keeps a local view and publishes the changes.
+
+```dart
+await client.markAsRead(email.id);
+await client.star(email.id);
+await client.moveToTrash(email.id);
+await client.restoreFromTrash(email.id);
+await client.moveToArchive(email.id);
+
+await client.addLabel(email.id, 'folder:invoices');
+await client.removeLabel(email.id, 'folder:invoices');
+```
+
+Convenience readers: `getInboxEmails`, `getSentEmails`, `getTrashedEmails`,
+`getArchivedEmails`, `getStarredEmails`, `getTrashedEmailsOlderThan`,
+`getUnreadCount`, plus the matching `*EmailIds` lists.
+
+---
+
+## Search
+
+```dart
+final results = await client.search('meeting', limit: 10);
+```
+
+Full-text search runs on the local store, across folders. For a scoped search,
+pass `search:` to `getSummaries`.
+
+---
+
+## Deleting
+
+```dart
+await client.delete([email.id]);
+```
+
+One NIP-09 request covers the batch. It targets the gift wrap, which is the
+event a relay actually holds, and it is signed by the pubkey the wrap is
+addressed to. The labels attached to those emails go with them.
+
+---
+
+## When a wrap does not make it
+
+Decryption can fail, a remote signer can refuse, a Blossom blob can be
+unreachable. Those wraps are parked rather than dropped.
+
+```dart
+final failed = await client.getFailedGiftWraps();
+for (final f in failed) {
+  print('${f.event.id} stopped at ${f.progress.stage}: ${f.progress.failure}');
 }
+
+await client.retry(failed.first.event.id);
+final count = await client.getFailedCount();
 ```
 
 ---
 
-## Delete Emails
+## Introspection
+
+The wrap, the seal and the rumor behind an email stay available, which is what
+lets a client show the real event or export it:
 
 ```dart
-await client.delete('event-id-here');
-```
-
----
-
-## How It Works
-
-### Subscription Flow
-
-```mermaid
-sequenceDiagram
-    participant Client
-    participant Relays
-    participant Store
-
-    Client->>Relays: Subscribe to Kind 1059
-    loop On each event
-        Relays->>Client: Gift-wrapped event
-        Client->>Client: Check if processed
-        Client->>Client: Unwrap NIP-59
-        Client->>Client: Parse RFC 2822
-        Client->>Store: Save email
-        Client->>Store: Mark processed
-        Client-->>App: Yield email
-    end
-```
-
-### Event Processing
-
-1. **Subscribe** to kind 1059 (gift wrap) events tagged with your pubkey
-2. **Check** if event was already processed
-3. **Unwrap** NIP-59 encryption to get inner event
-4. **Verify** inner event is kind 1301 (email)
-5. **Parse** RFC 2822 content into Email model
-6. **Store** in local database
-7. **Yield** to stream listener
-
----
-
-## Deduplication
-
-The SDK automatically handles duplicates:
-
-```dart
-// Events are tracked by ID
-if (await _store.isProcessed(event.id)) {
-  continue; // Skip already processed
-}
-
-// After processing
-await _store.markProcessed(event.id);
-```
-
----
-
-## Error Handling
-
-Malformed events are silently skipped:
-
-```dart
-try {
-  final unwrapped = await _unwrapGiftWrap(event);
-  if (unwrapped == null) continue;
-  if (unwrapped.kind != 1301) continue;
-  // ...
-} catch (e) {
-  continue; // Skip malformed events
-}
-```
-
----
-
-## Flutter Integration
-
-```dart
-class InboxController extends GetxController {
-  final NostrMailClient _client;
-  final emails = <Email>[].obs;
-  StreamSubscription? _subscription;
-
-  @override
-  void onInit() {
-    super.onInit();
-    _loadEmails();
-    _watchInbox();
-  }
-
-  Future<void> _loadEmails() async {
-    await _client.sync();
-    emails.value = await _client.getEmails();
-  }
-
-  void _watchInbox() {
-    _subscription = _client.watchInbox().listen((email) {
-      emails.insert(0, email);
-    });
-  }
-
-  @override
-  void onClose() {
-    _subscription?.cancel();
-    super.onClose();
-  }
-}
+final wrap = await client.getGiftWrap(email.id);
+final seal = await client.getSeal(email.id);
+final rumor = await client.getRumor(email.id);
 ```

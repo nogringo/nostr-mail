@@ -1,10 +1,10 @@
 input: .
 output: .retype
-url: https://nostr-mail.dev
+url: https://nogringo.github.io/nostr-mail
 
 exclude:
   - README.md
-  - PROTOCOL.md
+  - nostrhub/
   - node_modules/
   - .git/
 
@@ -17,11 +17,20 @@ branding:
       background: "#8b5cf6"
 
 links:
+  - text: Nmail
+    link: https://app.nostrmail.org
+    icon: mail
+  - text: nostrmail.org
+    link: https://nostrmail.org
+    icon: globe
   - text: GitHub
     link: https://github.com/nogringo/nostr-mail
     icon: mark-github
   - text: Dart Package
     link: https://pub.dev/packages/nostr_mail
+    icon: package
+  - text: npm Package
+    link: https://www.npmjs.com/package/nostr-mail
     icon: package
 
 footer:

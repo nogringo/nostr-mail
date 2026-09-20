@@ -105,7 +105,11 @@ bridge-inbound/
 
 ```typescript
 // bridge-inbound/ses/src/index.ts
-import { initConfig, processIncomingEmail, IncomingEmail } from 'inbound-core';
+import {
+  initConfig,
+  processIncomingEmail,
+  IncomingEmail,
+} from '@nostr-mail/bridge-core';
 
 initConfig();
 
@@ -121,30 +125,47 @@ export async function handleSesNotification(notification: any) {
   };
 
   // processIncomingEmail handles:
-  // 1. Extract recipient pubkey
-  // 2. Run plugin filter
+  // 1. Resolve the recipient pubkey
+  // 2. Run the plugin filter
   // 3. Fetch DM relays
   // 4. Gift wrap and publish
-  const result = await processIncomingEmail(email, 'ses', 'aws');
-
-  return result;
+  return processIncomingEmail(email, 'ses', 'aws');
 }
 ```
 
-### inbound-core Exports
+Pass the recipient pubkey as a fourth argument when your source already knows
+it, and the address lookup is skipped:
 
 ```typescript
-// Main function - does everything
-processIncomingEmail(email, sourceType, sourceInfo)
-
-// Individual functions if you need more control
-extractPubkeyFromEmail(address)  // Resolve to pubkey
-lookupNip05(name, domain)        // NIP-05 lookup
-fetchDMRelays(pubkey)            // Get DM relays (kind 10050)
-giftWrapEmail(email, pubkey)     // Create gift wrap
-publishToRelays(event, relays)   // Publish to relays
-runPlugin(path, input)           // Run filter plugin
+processIncomingEmail(email, sourceType, sourceInfo, recipientPubkey?)
 ```
+
+!!!warning Use the envelope
+`email.to` should be the SMTP envelope recipient, not the `To:` header. A Bcc
+recipient only ever appears in the envelope.
+!!!
+
+### @nostr-mail/bridge-core exports
+
+```typescript
+// Configuration
+initConfig()
+getConfig()
+
+// The whole inbound path in one call
+processIncomingEmail(email, sourceType, sourceInfo, recipientPubkey?)
+
+// Individual steps
+extractPubkeyFromEmail(address)  // Resolve an address to a pubkey
+lookupNip05(name, domain)        // NIP-05 lookup
+fetchDMRelays(pubkey)            // DM relays (kind 10050)
+publishToRelays(event, relays)   // Publish
+runPlugin(path, input)           // Run the filter plugin
+getInboundPubkey()               // The bridge's own pubkey
+```
+
+The gift wrapping itself comes from the [`nostr-mail`](/sdk/javascript/) npm
+package, which `bridge-core` re-exports as `NostrMailClient`.
 
 ### IncomingEmail Interface
 

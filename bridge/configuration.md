@@ -18,6 +18,8 @@ Complete configuration reference for all bridge components.
 |----------|-------------|----------|---------|
 | `RELAYS` | Comma-separated relay URLs | Yes | `wss://relay.damus.io` |
 | `PLUGIN_PATH` | Path to filter plugin executable | No | None |
+| `PLUGIN_TIMEOUT_MS` | How long a plugin may take before it is given up on | No | `30000` |
+| `SEND_DM_COPY` | Send a DM copy of inbound email. The user's `dm_copy` setting is what asks for it | No | `false` |
 
 ---
 
@@ -63,6 +65,7 @@ Complete configuration reference for all bridge components.
 | `SMTP_SECURE` | Use TLS | No | `false` |
 | `SMTP_USER` | SMTP username | No | None |
 | `SMTP_PASS` | SMTP password | No | None |
+| `SMTP_REJECT_UNAUTHORIZED` | Verify the server certificate. Set to `false` only for a local MTA with a self-signed certificate | No | `true` |
 
 ### Mailgun Provider
 
@@ -70,6 +73,7 @@ Complete configuration reference for all bridge components.
 |----------|-------------|----------|---------|
 | `MAILGUN_API_KEY` | Mailgun API key | Yes | - |
 | `MAILGUN_DOMAIN` | Mailgun domain | Yes | - |
+| `MAILGUN_REGION` | `us` or `eu` | No | `us` |
 
 ---
 
@@ -126,62 +130,53 @@ PLUGIN_PATH=/opt/nostr-mail/plugins/uid_ovh
 
 ## Docker Compose
 
-```yaml
-version: '3.8'
+The repository ships a `docker-compose.yml` that runs the four services
+together. Fill in `.env` and start it:
 
-services:
-  inbound:
-    build: ./bridge-inbound/smtp
-    ports:
-      - "25:25"
-    environment:
-      - INBOUND_PRIVATE_KEY=${INBOUND_PRIVATE_KEY}
-      - RELAYS=${RELAYS}
-    restart: unless-stopped
-
-  outbound:
-    build: ./bridge-outbound
-    environment:
-      - BRIDGE_PRIVATE_KEY=${BRIDGE_PRIVATE_KEY}
-      - RELAYS=${RELAYS}
-      - OUTBOUND_PROVIDER=smtp
-      - SMTP_HOST=postfix
-      - FROM_DOMAIN=${FROM_DOMAIN}
-    restart: unless-stopped
-
-  nip05:
-    build: ./nip05-service
-    ports:
-      - "3000:3000"
-    environment:
-      - BRIDGE_PUBKEY=${BRIDGE_PUBKEY}
-    volumes:
-      - ./data:/app/data
-    restart: unless-stopped
-
-  postfix:
-    image: postfix:latest
-    restart: unless-stopped
+```bash
+cp .env.example .env
+docker compose up -d
 ```
+
+```bash
+# .env
+INBOUND_PRIVATE_KEY=
+BRIDGE_PRIVATE_KEY=
+BRIDGE_PUBKEY=
+FROM_DOMAIN=mail.example.com
+# PLUGIN_PATH=/app/plugins/whitelist.js
+```
+
+| Service | Role |
+|---------|------|
+| `inbound-smtp` | SMTP on port 25, publishes to Nostr |
+| `bridge` | Nostr to SMTP, sending through the bundled Postfix |
+| `nip05-service` | `/.well-known/nostr.json` on port 3000 |
+| `postfix` | Outbound MTA, with DKIM signing |
+
+DKIM keys live in `./dkim-keys`, the NIP-05 user store in `./nip05-data`.
+Back up both.
 
 ---
 
 ## DNS Configuration
 
-For a fully functional bridge, configure these DNS records:
+Mail that is not authenticated goes to spam, so treat these as required rather
+than optional.
 
 | Type | Name | Value |
 |------|------|-------|
 | A | `mail.yourdomain.com` | Your server IP |
 | MX | `yourdomain.com` | `mail.yourdomain.com` |
-| TXT | `_smtp.yourdomain.com` | NIP-05 discovery |
+| TXT | `yourdomain.com` | `v=spf1 mx -all` |
+| TXT | `<selector>._domainkey.yourdomain.com` | Your DKIM public key |
+| TXT | `_dmarc.yourdomain.com` | `v=DMARC1; p=quarantine; rua=mailto:postmaster@yourdomain.com` |
 
-### SPF Record (optional but recommended)
+Also set the reverse DNS of your server IP to `mail.yourdomain.com`. Many
+receivers reject mail from an address that does not resolve back.
 
-```
-v=spf1 mx ip4:YOUR_SERVER_IP -all
-```
+### NIP-05 discovery
 
-### DKIM (optional but recommended)
-
-Configure DKIM signing in your MTA for better deliverability.
+The bridge is discovered over HTTPS, not DNS: serve its pubkey under `_smtp` in
+`https://yourdomain.com/.well-known/nostr.json`. That is what `nip05-service`
+does.

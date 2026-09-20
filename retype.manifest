@@ -1,6 +1,6 @@
 {
-  "version": "3.11.0",
-  "created": "2026-01-02T15:44:27Z",
+  "version": "4.6.0",
+  "created": "2026-09-20T21:18:55Z",
   "files": [
     {
       "path": ".nojekyll"
@@ -9,7 +9,25 @@
       "path": "404.html"
     },
     {
+      "path": "bridge/configuration.md"
+    },
+    {
       "path": "bridge/configuration/index.html"
+    },
+    {
+      "path": "bridge/custom-bridge.md"
+    },
+    {
+      "path": "bridge/custom-bridge/index.html"
+    },
+    {
+      "path": "bridge/dsn.md"
+    },
+    {
+      "path": "bridge/dsn/index.html"
+    },
+    {
+      "path": "bridge/inbound.md"
     },
     {
       "path": "bridge/inbound/index.html"
@@ -18,10 +36,22 @@
       "path": "bridge/index.html"
     },
     {
+      "path": "bridge/index.md"
+    },
+    {
+      "path": "bridge/outbound.md"
+    },
+    {
       "path": "bridge/outbound/index.html"
     },
     {
+      "path": "bridge/plugins.md"
+    },
+    {
       "path": "bridge/plugins/index.html"
+    },
+    {
+      "path": "client/authentication.md"
     },
     {
       "path": "client/authentication/index.html"
@@ -30,19 +60,38 @@
       "path": "client/index.html"
     },
     {
+      "path": "client/index.md"
+    },
+    {
+      "path": "client/installation.md"
+    },
+    {
       "path": "client/installation/index.html"
+    },
+    {
+      "path": "client/usage.md"
     },
     {
       "path": "client/usage/index.html"
     },
     {
-      "path": "CNAME"
+      "path": "CNAME",
+      "old": true
     },
     {
       "path": "getting-started/index.html"
     },
     {
+      "path": "getting-started/index.md"
+    },
+    {
       "path": "index.html"
+    },
+    {
+      "path": "index.md"
+    },
+    {
+      "path": "llms.txt"
     },
     {
       "path": "package-lock.json"
@@ -52,6 +101,9 @@
     },
     {
       "path": "protocol/index.html"
+    },
+    {
+      "path": "protocol/index.md"
     },
     {
       "path": "resources/css/retype.css"
@@ -64,6 +116,9 @@
     },
     {
       "path": "resources/js/config.js"
+    },
+    {
+      "path": "resources/js/instagram.js"
     },
     {
       "path": "resources/js/lunr.js"
@@ -99,22 +154,47 @@
       "path": "robots.txt"
     },
     {
+      "path": "sdk/api.md"
+    },
+    {
       "path": "sdk/api/index.html"
     },
     {
       "path": "sdk/index.html"
     },
     {
+      "path": "sdk/index.md"
+    },
+    {
+      "path": "sdk/javascript.md"
+    },
+    {
+      "path": "sdk/javascript/index.html"
+    },
+    {
+      "path": "sdk/receiving.md"
+    },
+    {
       "path": "sdk/receiving/index.html"
+    },
+    {
+      "path": "sdk/sending.md"
     },
     {
       "path": "sdk/sending/index.html"
     },
     {
+      "path": "sdk/storage.md"
+    },
+    {
       "path": "sdk/storage/index.html"
     },
     {
-      "path": "sitemap.xml.gz"
+      "path": "sitemap.xml"
+    },
+    {
+      "path": "sitemap.xml.gz",
+      "old": true
     }
   ]
 }
