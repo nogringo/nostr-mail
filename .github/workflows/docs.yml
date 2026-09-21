@@ -32,7 +32,7 @@ jobs:
         run: |
           # npm 10 skips the retype bin link: retypeapp and its platform package share the name
           npm install -g npm@11
-          npm ci
+          npm install
 
       - name: Build docs
         run: npm run docs:build
