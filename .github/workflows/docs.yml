@@ -29,7 +29,10 @@ jobs:
           node-version: 22
 
       - name: Install dependencies
-        run: npm install
+        run: |
+          # npm 10 skips the retype bin link: retypeapp and its platform package share the name
+          npm install -g npm@11
+          npm ci
 
       - name: Build docs
         run: npm run docs:build
